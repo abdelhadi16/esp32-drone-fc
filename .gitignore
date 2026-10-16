@@ -1,0 +1,28 @@
+# Arduino / PlatformIO build output
+build/
+*.bin
+*.elf
+*.map
+.pio/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# simulator output
+tools/sim/out/
+
+# downloaded flight logs and plots (keep examples in docs/)
+*.csv
+!docs/**/*.csv
+flight_*.png
+
+# OS / editors
+.DS_Store
+Thumbs.db
+*.swp
+
+# plots made in the repository folder
+sim_flight.png

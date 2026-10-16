@@ -1,0 +1,49 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  simulator:
+    name: Simulator + log tool
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fly the real firmware in the simulator (17 scenarios, cores 2.x and 3.x)
+        run: bash tools/sim/run_tests.sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Log tool on a simulated flight
+        run: |
+          pip install -r tools/requirements.txt
+          python tools/flight_log.py summary tools/sim/out/s1_log.csv
+          python tools/flight_log.py plot tools/sim/out/s1_log.csv --save sim_flight.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: simulated-flight
+          path: |
+            sim_flight.png
+            tools/sim/out/*.csv
+            tools/sim/out/*.txt
+
+  arduino-build:
+    name: Arduino build (ESP32-S3)
+    runs-on: ubuntu-latest
+    continue-on-error: true   # downloads the whole ESP32 toolchain; informative only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: arduino/compile-sketches@v1
+        with:
+          fqbn: esp32:esp32:esp32s3:PSRAM=opi,FlashSize=16M,PartitionScheme=app3M_fat9M_16MB
+          platforms: |
+            - name: esp32:esp32
+              source-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          sketch-paths: |
+            - firmware/1_motor_test
+            - firmware/2_receiver_test
+            - firmware/3_imu_test
+            - firmware/4_flight_controller
+            - firmware/extras/bench_test
+          enable-deltas-report: false
